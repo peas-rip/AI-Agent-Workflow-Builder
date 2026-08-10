@@ -2,7 +2,8 @@ actions:
   - name: approveStep
     definition:
       handler: https://rjxzoqtvtqbgjqcagviq.functions.ap-south-1.nhost.run/v1/actions
-      output_type: ApproveStepResponse!
+      output_type: ApproveStepResponse
+      forward_client_headers: true
       ignored_client_headers:
         - Content-Length
         - Content-MD5
@@ -28,16 +29,12 @@ actions:
           type: Boolean!
       type: mutation
       kind: synchronous
-    permissions:
-      - role: user
-        permission:
-          session_variables:
-            - x-hasura-user-id
 
   - name: triggerWorkflowRun
     definition:
       handler: https://rjxzoqtvtqbgjqcagviq.functions.ap-south-1.nhost.run/v1/actions
-      output_type: TriggerWorkflowRunResponse!
+      output_type: TriggerWorkflowRunResponse
+      forward_client_headers: true
       ignored_client_headers:
         - Content-Length
         - Content-MD5
@@ -61,11 +58,6 @@ actions:
           type: uuid!
       type: mutation
       kind: synchronous
-    permissions:
-      - role: user
-        permission:
-          session_variables:
-            - x-hasura-user-id
 
 custom_types:
   objects:
