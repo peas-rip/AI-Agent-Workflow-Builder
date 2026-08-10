@@ -1,6 +1,6 @@
 -- AI Agent Workflow Builder - Initial Schema
 -- Organizations with usage quota
-CREATE TABLE public.organizations (
+CREATE TABLE IF NOT EXISTS public.organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   usage_calls_used INT DEFAULT 0,
@@ -10,7 +10,7 @@ CREATE TABLE public.organizations (
 );
 
 -- Organization membership with roles
-CREATE TABLE public.org_members (
+CREATE TABLE IF NOT EXISTS public.org_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -20,7 +20,7 @@ CREATE TABLE public.org_members (
 );
 
 -- Workflows
-CREATE TABLE public.workflows (
+CREATE TABLE IF NOT EXISTS public.workflows (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE public.workflows (
 );
 
 -- Workflow steps (ordered)
-CREATE TABLE public.workflow_steps (
+CREATE TABLE IF NOT EXISTS public.workflow_steps (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workflow_id UUID NOT NULL REFERENCES public.workflows(id) ON DELETE CASCADE,
   step_order INT NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE public.workflow_steps (
 );
 
 -- Workflow triggers
-CREATE TABLE public.workflow_triggers (
+CREATE TABLE IF NOT EXISTS public.workflow_triggers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workflow_id UUID NOT NULL REFERENCES public.workflows(id) ON DELETE CASCADE,
   trigger_type TEXT NOT NULL CHECK (trigger_type IN (
@@ -58,7 +58,7 @@ CREATE TABLE public.workflow_triggers (
 );
 
 -- Workflow runs
-CREATE TABLE public.workflow_runs (
+CREATE TABLE IF NOT EXISTS public.workflow_runs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workflow_id UUID NOT NULL REFERENCES public.workflows(id) ON DELETE CASCADE,
   status TEXT NOT NULL CHECK (status IN (
@@ -72,7 +72,7 @@ CREATE TABLE public.workflow_runs (
 );
 
 -- Step runs
-CREATE TABLE public.step_runs (
+CREATE TABLE IF NOT EXISTS public.step_runs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workflow_run_id UUID NOT NULL REFERENCES public.workflow_runs(id) ON DELETE CASCADE,
   workflow_step_id UUID NOT NULL REFERENCES public.workflow_steps(id),
@@ -89,8 +89,8 @@ CREATE TABLE public.step_runs (
   completed_at TIMESTAMPTZ
 );
 
--- Notifications table (for notify step - Slack/webhook)
-CREATE TABLE public.notifications (
+-- Notifications table
+CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workflow_run_id UUID REFERENCES public.workflow_runs(id),
   channel TEXT NOT NULL DEFAULT 'slack',
@@ -101,15 +101,15 @@ CREATE TABLE public.notifications (
 );
 
 -- Create indexes
-CREATE INDEX idx_org_members_user ON public.org_members(user_id);
-CREATE INDEX idx_org_members_org ON public.org_members(org_id);
-CREATE INDEX idx_workflows_org ON public.workflows(org_id);
-CREATE INDEX idx_workflow_steps_workflow ON public.workflow_steps(workflow_id);
-CREATE INDEX idx_workflow_runs_workflow ON public.workflow_runs(workflow_id);
-CREATE INDEX idx_workflow_runs_status ON public.workflow_runs(status);
-CREATE INDEX idx_step_runs_run ON public.step_runs(workflow_run_id);
-CREATE INDEX idx_step_runs_status ON public.step_runs(status);
-CREATE INDEX idx_notifications_run ON public.notifications(workflow_run_id);
+CREATE INDEX IF NOT EXISTS idx_org_members_user ON public.org_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_org_members_org ON public.org_members(org_id);
+CREATE INDEX IF NOT EXISTS idx_workflows_org ON public.workflows(org_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_workflow ON public.workflow_steps(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_workflow ON public.workflow_runs(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_workflow_runs_status ON public.workflow_runs(status);
+CREATE INDEX IF NOT EXISTS idx_step_runs_run ON public.step_runs(workflow_run_id);
+CREATE INDEX IF NOT EXISTS idx_step_runs_status ON public.step_runs(status);
+CREATE INDEX IF NOT EXISTS idx_notifications_run ON public.notifications(workflow_run_id);
 
 -- Create aggregation view for org usage stats
 CREATE OR REPLACE VIEW public.org_usage_stats AS
@@ -134,7 +134,7 @@ LEFT JOIN public.workflow_runs wr ON wr.workflow_id = w.id
   AND wr.started_at >= o.usage_period_start
 GROUP BY o.id, o.name, o.usage_calls_used, o.usage_calls_allowed;
 
--- Enable Row Level Security
+-- Enable Row Level Security (idempotent)
 ALTER TABLE public.org_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_steps ENABLE ROW LEVEL SECURITY;
@@ -143,66 +143,69 @@ ALTER TABLE public.workflow_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.step_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
--- Create policies for authenticated users
-CREATE POLICY "org_members_select_own_org" ON public.org_members
+-- Policies using hasura_session variable (compatible with Nhost Cloud)
+CREATE POLICY IF NOT EXISTS "org_members_select_own_org" ON public.org_members
+  FOR SELECT USING (
+    user_id = current_setting('hasura.user.id', true)::uuid
+  );
+
+CREATE POLICY IF NOT EXISTS "workflows_select_own_org" ON public.workflows
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.org_members om
-      WHERE om.user_id = auth.uid() AND om.org_id = org_members.org_id
+      WHERE om.user_id = current_setting('hasura.user.id', true)::uuid 
+        AND om.org_id = workflows.org_id
     )
   );
 
-CREATE POLICY "workflows_select_own_org" ON public.workflows
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.org_members om
-      WHERE om.user_id = auth.uid() AND om.org_id = workflows.org_id
-    )
-  );
-
-CREATE POLICY "workflow_steps_select_own_org" ON public.workflow_steps
+CREATE POLICY IF NOT EXISTS "workflow_steps_select_own_org" ON public.workflow_steps
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflows w
       JOIN public.org_members om ON om.org_id = w.org_id
-      WHERE om.user_id = auth.uid() AND w.id = workflow_steps.workflow_id
+      WHERE om.user_id = current_setting('hasura.user.id', true)::uuid 
+        AND w.id = workflow_steps.workflow_id
     )
   );
 
-CREATE POLICY "workflow_triggers_select_own_org" ON public.workflow_triggers
+CREATE POLICY IF NOT EXISTS "workflow_triggers_select_own_org" ON public.workflow_triggers
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflows w
       JOIN public.org_members om ON om.org_id = w.org_id
-      WHERE om.user_id = auth.uid() AND w.id = workflow_triggers.workflow_id
+      WHERE om.user_id = current_setting('hasura.user.id', true)::uuid 
+        AND w.id = workflow_triggers.workflow_id
     )
   );
 
-CREATE POLICY "workflow_runs_select_own_org" ON public.workflow_runs
+CREATE POLICY IF NOT EXISTS "workflow_runs_select_own_org" ON public.workflow_runs
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflows w
       JOIN public.org_members om ON om.org_id = w.org_id
-      WHERE om.user_id = auth.uid() AND w.id = workflow_runs.workflow_id
+      WHERE om.user_id = current_setting('hasura.user.id', true)::uuid 
+        AND w.id = workflow_runs.workflow_id
     )
   );
 
-CREATE POLICY "step_runs_select_own_org" ON public.step_runs
+CREATE POLICY IF NOT EXISTS "step_runs_select_own_org" ON public.step_runs
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflow_runs wr
       JOIN public.workflows w ON w.id = wr.workflow_id
       JOIN public.org_members om ON om.org_id = w.org_id
-      WHERE om.user_id = auth.uid() AND wr.id = step_runs.workflow_run_id
+      WHERE om.user_id = current_setting('hasura.user.id', true)::uuid 
+        AND wr.id = step_runs.workflow_run_id
     )
   );
 
-CREATE POLICY "notifications_select_own_org" ON public.notifications
+CREATE POLICY IF NOT EXISTS "notifications_select_own_org" ON public.notifications
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflow_runs wr
       JOIN public.workflows w ON w.id = wr.workflow_id
       JOIN public.org_members om ON om.org_id = w.org_id
-      WHERE om.user_id = auth.uid() AND wr.id = notifications.workflow_run_id
+      WHERE om.user_id = current_setting('hasura.user.id', true)::uuid 
+        AND wr.id = notifications.workflow_run_id
     )
   );
