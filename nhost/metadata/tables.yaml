@@ -1,0 +1,25 @@
+tables:
+  - table:
+      schema: public
+      name: organizations
+  - table:
+      schema: public
+      name: org_members
+  - table:
+      schema: public
+      name: workflows
+  - table:
+      schema: public
+      name: workflow_steps
+  - table:
+      schema: public
+      name: workflow_triggers
+  - table:
+      schema: public
+      name: workflow_runs
+  - table:
+      schema: public
+      name: step_runs
+  - table:
+      schema: public
+      name: notifications
