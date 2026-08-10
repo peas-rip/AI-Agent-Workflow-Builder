@@ -1,6 +1,16 @@
 table:
   name: notifications
   schema: public
+object_relationships:
+  - name: workflow_run
+    using:
+      manual_configuration:
+        column_mapping:
+          workflow_run_id: id
+        insertion_order: null
+        remote_table:
+          name: workflow_runs
+          schema: public
 select_permissions:
   - role: user
     permission:
