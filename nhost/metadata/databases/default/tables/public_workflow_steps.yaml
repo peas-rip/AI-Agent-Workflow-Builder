@@ -11,6 +11,18 @@ object_relationships:
         remote_table:
           name: workflows
           schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - workflow_id
+        - step_order
+        - step_type
+        - config
+        - created_at
+    comment: ""
 select_permissions:
   - role: user
     permission:
@@ -21,7 +33,23 @@ select_permissions:
         - step_type
         - config
         - created_at
-      filter:
-        workflow:
-          org_id:
-            _in: X-Hasura-Org-Ids
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - step_order
+        - step_type
+        - config
+        - created_at
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}
+    comment: ""

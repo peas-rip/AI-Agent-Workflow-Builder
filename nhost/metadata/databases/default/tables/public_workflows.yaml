@@ -39,6 +39,19 @@ array_relationships:
         remote_table:
           name: workflow_triggers
           schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - org_id
+        - name
+        - description
+        - created_by
+        - created_at
+        - updated_at
+    comment: ""
 select_permissions:
   - role: user
     permission:
@@ -50,6 +63,24 @@ select_permissions:
         - created_by
         - created_at
         - updated_at
-      filter:
-        org_id:
-          _in: X-Hasura-Org-Ids
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - org_id
+        - name
+        - description
+        - created_by
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}
+    comment: ""

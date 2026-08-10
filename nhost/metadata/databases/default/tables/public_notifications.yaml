@@ -11,6 +11,19 @@ object_relationships:
         remote_table:
           name: workflow_runs
           schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - workflow_run_id
+        - channel
+        - message
+        - webhook_url
+        - sent_at
+        - status
+    comment: ""
 select_permissions:
   - role: user
     permission:
@@ -22,8 +35,24 @@ select_permissions:
         - webhook_url
         - sent_at
         - status
-      filter:
-        workflow_run:
-          workflow:
-            org_id:
-              _in: X-Hasura-Org-Ids
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_run_id
+        - channel
+        - message
+        - webhook_url
+        - sent_at
+        - status
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}
+    comment: ""

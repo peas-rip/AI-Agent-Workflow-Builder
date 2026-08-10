@@ -5,6 +5,5 @@ select_permissions:
   - role: user
     permission:
       columns: "*"
-      filter:
-        org_id:
-          _in: X-Hasura-Org-Ids
+      filter: {}
+      allow_aggregations: true

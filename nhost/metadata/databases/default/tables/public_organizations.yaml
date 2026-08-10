@@ -11,6 +11,18 @@ array_relationships:
         remote_table:
           name: org_members
           schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - name
+        - usage_calls_used
+        - usage_calls_allowed
+        - usage_period_start
+        - created_at
+    comment: ""
 select_permissions:
   - role: user
     permission:
@@ -21,6 +33,23 @@ select_permissions:
         - usage_calls_allowed
         - usage_period_start
         - created_at
-      filter:
-        id:
-          _in: X-Hasura-Org-Ids
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - usage_calls_used
+        - usage_calls_allowed
+        - usage_period_start
+        - created_at
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}
+    comment: ""
