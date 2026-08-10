@@ -1,0 +1,16 @@
+[nhost]
+
+[auth]
+redirections = { callback = "/auth/callback" }
+
+[functions]
+node_version = 20
+
+[hasura]
+admin_secret = "${HASURA_ADMIN_SECRET}"
+
+# Cloud deployment settings
+# For local development, comment out these lines
+# [cloud]
+# subdomain = "your-project-subdomain"
+# region = "eu-central-1"

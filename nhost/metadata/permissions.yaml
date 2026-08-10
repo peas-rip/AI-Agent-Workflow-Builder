@@ -1,0 +1,240 @@
+permissions:
+  organizations:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          org_members:
+            user_id: { _eq: "X-Hasura-User-Id" }
+            role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          org_members:
+            user_id: { _eq: "X-Hasura-User-Id" }
+            role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          org_members:
+            user_id: { _eq: "X-Hasura-User-Id" }
+            role: { _in: ["owner", "editor", "viewer"] }
+
+  org_members:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          organization:
+            org_members:
+              user_id: { _eq: "X-Hasura-User-Id" }
+              role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          organization:
+            org_members:
+              user_id: { _eq: "X-Hasura-User-Id" }
+              role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          organization:
+            org_members:
+              user_id: { _eq: "X-Hasura-User-Id" }
+              role: { _in: ["owner", "editor", "viewer"] }
+
+  workflows:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          organization:
+            org_members:
+              user_id: { _eq: "X-Hasura-User-Id" }
+              role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          organization:
+            org_members:
+              user_id: { _eq: "X-Hasura-User-Id" }
+              role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          organization:
+            org_members:
+              user_id: { _eq: "X-Hasura-User-Id" }
+              role: { _in: ["owner", "editor", "viewer"] }
+
+  workflow_steps:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _in: ["owner", "editor", "viewer"] }
+
+  workflow_triggers:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _in: ["owner", "editor", "viewer"] }
+
+  workflow_runs:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          workflow:
+            organization:
+              org_members:
+                user_id: { _eq: "X-Hasura-User-Id" }
+                role: { _in: ["owner", "editor", "viewer"] }
+
+  step_runs:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          workflow_run:
+            workflow:
+              organization:
+                org_members:
+                  user_id: { _eq: "X-Hasura-User-Id" }
+                  role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          workflow_run:
+            workflow:
+              organization:
+                org_members:
+                  user_id: { _eq: "X-Hasura-User-Id" }
+                  role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          workflow_run:
+            workflow:
+              organization:
+                org_members:
+                  user_id: { _eq: "X-Hasura-User-Id" }
+                  role: { _in: ["owner", "editor", "viewer"] }
+
+  notifications:
+    - role: owner
+      permission:
+        columns: "*"
+        filter:
+          workflow_run:
+            workflow:
+              organization:
+                org_members:
+                  user_id: { _eq: "X-Hasura-User-Id" }
+                  role: { _eq: "owner" }
+    - role: editor
+      permission:
+        columns: "*"
+        filter:
+          workflow_run:
+            workflow:
+              organization:
+                org_members:
+                  user_id: { _eq: "X-Hasura-User-Id" }
+                  role: { _in: ["owner", "editor"] }
+    - role: viewer
+      permission:
+        columns: "*"
+        filter:
+          workflow_run:
+            workflow:
+              organization:
+                org_members:
+                  user_id: { _eq: "X-Hasura-User-Id" }
+                  role: { _in: ["owner", "editor", "viewer"] }
+
+# Step-level gating permissions (Layer 2)
+# Only owners can insert dangerous step types
+workflow_steps_insert_permissions:
+  - role: owner
+    permission:
+      columns: "*"
+      check: {}
+  - role: editor
+    permission:
+      columns: "*"
+      check:
+        step_type: { _in: ["llm_call", "http_request", "conditional_branch", "approval_gate"] }
+  # Viewers cannot insert
