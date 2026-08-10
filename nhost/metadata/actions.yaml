@@ -20,7 +20,7 @@ actions:
         - Content-Type
       headers:
         - name: x-hasura-admin-secret
-          value: ${HASURA_ADMIN_SECRET}
+          value: rdj^3AcTsiw(hx$owKDrH:2BgImKXGa%
       arguments:
         - name: step_run_id
           type: uuid!
@@ -55,7 +55,7 @@ actions:
         - Content-Type
       headers:
         - name: x-hasura-admin-secret
-          value: ${HASURA_ADMIN_SECRET}
+          value: rdj^3AcTsiw(hx$owKDrH:2BgImKXGa%
       arguments:
         - name: workflow_id
           type: uuid!
