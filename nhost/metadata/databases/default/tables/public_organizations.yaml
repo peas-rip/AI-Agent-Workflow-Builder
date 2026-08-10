@@ -11,3 +11,16 @@ array_relationships:
         remote_table:
           name: org_members
           schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - usage_calls_used
+        - usage_calls_allowed
+        - usage_period_start
+        - created_at
+      filter:
+        id:
+          _in: X-Hasura-Org-Ids

@@ -155,7 +155,7 @@ export const QUERIES = {
         _set: {
           status: $status,
           error_message: $error_message,
-          completed_at: $status != "paused" ? now() : null
+          completed_at: ($status == "completed" OR $status == "failed") ? now() : null
         }
       ) {
         id

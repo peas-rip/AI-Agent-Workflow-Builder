@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS public.step_runs (
   attempt_count INT DEFAULT 0,
   approved_by UUID REFERENCES auth.users(id),
   approved_at TIMESTAMPTZ,
-  started_at TIMESTAMPTZ,
+   started_at TIMESTAMPTZ DEFAULT now(),
   completed_at TIMESTAMPTZ
 );
 
@@ -144,12 +144,12 @@ ALTER TABLE public.step_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Policies using hasura_session variable (compatible with Nhost Cloud)
-CREATE POLICY IF NOT EXISTS "org_members_select_own_org" ON public.org_members
+CREATE POLICY "org_members_select_own_org" ON public.org_members
   FOR SELECT USING (
     user_id = current_setting('hasura.user.id', true)::uuid
   );
 
-CREATE POLICY IF NOT EXISTS "workflows_select_own_org" ON public.workflows
+CREATE POLICY "workflows_select_own_org" ON public.workflows
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.org_members om
@@ -158,7 +158,7 @@ CREATE POLICY IF NOT EXISTS "workflows_select_own_org" ON public.workflows
     )
   );
 
-CREATE POLICY IF NOT EXISTS "workflow_steps_select_own_org" ON public.workflow_steps
+CREATE POLICY "workflow_steps_select_own_org" ON public.workflow_steps
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflows w
@@ -168,7 +168,7 @@ CREATE POLICY IF NOT EXISTS "workflow_steps_select_own_org" ON public.workflow_s
     )
   );
 
-CREATE POLICY IF NOT EXISTS "workflow_triggers_select_own_org" ON public.workflow_triggers
+CREATE POLICY "workflow_triggers_select_own_org" ON public.workflow_triggers
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflows w
@@ -178,7 +178,7 @@ CREATE POLICY IF NOT EXISTS "workflow_triggers_select_own_org" ON public.workflo
     )
   );
 
-CREATE POLICY IF NOT EXISTS "workflow_runs_select_own_org" ON public.workflow_runs
+CREATE POLICY "workflow_runs_select_own_org" ON public.workflow_runs
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflows w
@@ -188,7 +188,7 @@ CREATE POLICY IF NOT EXISTS "workflow_runs_select_own_org" ON public.workflow_ru
     )
   );
 
-CREATE POLICY IF NOT EXISTS "step_runs_select_own_org" ON public.step_runs
+CREATE POLICY "step_runs_select_own_org" ON public.step_runs
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflow_runs wr
@@ -199,7 +199,7 @@ CREATE POLICY IF NOT EXISTS "step_runs_select_own_org" ON public.step_runs
     )
   );
 
-CREATE POLICY IF NOT EXISTS "notifications_select_own_org" ON public.notifications
+CREATE POLICY "notifications_select_own_org" ON public.notifications
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.workflow_runs wr

@@ -10,7 +10,7 @@ export default async (req: Request, res: Response) => {
   }
   
   try {
-    const { workflow_id } = params;
+    const workflow_id = (req.body as any)?.workflow_id || (req.query as any)?.workflow_id;
     const payload = body;
     
     // Verify webhook secret

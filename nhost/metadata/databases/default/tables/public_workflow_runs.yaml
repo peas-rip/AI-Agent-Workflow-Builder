@@ -21,3 +21,28 @@ array_relationships:
         remote_table:
           name: step_runs
           schema: public
+  - name: notifications
+    using:
+      manual_configuration:
+        column_mapping:
+          id: workflow_run_id
+        insertion_order: null
+        remote_table:
+          name: notifications
+          schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - status
+        - trigger_type
+        - started_by
+        - started_at
+        - completed_at
+        - error_message
+      filter:
+        workflow:
+          org_id:
+            _in: X-Hasura-Org-Ids

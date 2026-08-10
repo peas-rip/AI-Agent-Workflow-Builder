@@ -11,3 +11,17 @@ object_relationships:
         remote_table:
           name: workflows
           schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - step_order
+        - step_type
+        - config
+        - created_at
+      filter:
+        workflow:
+          org_id:
+            _in: X-Hasura-Org-Ids
