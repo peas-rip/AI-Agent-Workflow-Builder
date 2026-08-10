@@ -1,0 +1,41 @@
+table:
+  name: workflows
+  schema: public
+object_relationships:
+  - name: organization
+    using:
+      manual_configuration:
+        column_mapping:
+          org_id: id
+        insertion_order: null
+        remote_table:
+          name: organizations
+          schema: public
+array_relationships:
+  - name: runs
+    using:
+      manual_configuration:
+        column_mapping:
+          id: workflow_id
+        insertion_order: null
+        remote_table:
+          name: workflow_runs
+          schema: public
+  - name: steps
+    using:
+      manual_configuration:
+        column_mapping:
+          id: workflow_id
+        insertion_order: null
+        remote_table:
+          name: workflow_steps
+          schema: public
+  - name: triggers
+    using:
+      manual_configuration:
+        column_mapping:
+          id: workflow_id
+        insertion_order: null
+        remote_table:
+          name: workflow_triggers
+          schema: public
