@@ -1,0 +1,80 @@
+actions:
+  - name: approveStep
+    definition:
+      handler: https://rjxzoqtvtqbgjqcagviq.functions.ap-south-1.nhost.run/v1/actions
+      output_type: ApproveStepResponse!
+      ignored_client_headers:
+        - Content-Length
+        - Content-MD5
+        - User-Agent
+        - Host
+        - Origin
+        - Referer
+        - Accept
+        - Accept-Encoding
+        - Accept-Language
+        - Accept-Datetime
+        - Cache-Control
+        - Connection
+        - DNT
+        - Content-Type
+      headers:
+        - name: x-hasura-admin-secret
+          value: rdj^3AcTsiw(hx$owKDrH:2BgImKXGa%
+      arguments:
+        - name: step_run_id
+          type: uuid!
+        - name: approved
+          type: Boolean!
+      type: mutation
+      kind: synchronous
+
+  - name: triggerWorkflowRun
+    definition:
+      handler: https://rjxzoqtvtqbgjqcagviq.functions.ap-south-1.nhost.run/v1/actions
+      output_type: TriggerWorkflowRunResponse!
+      ignored_client_headers:
+        - Content-Length
+        - Content-MD5
+        - User-Agent
+        - Host
+        - Origin
+        - Referer
+        - Accept
+        - Accept-Encoding
+        - Accept-Language
+        - Accept-Datetime
+        - Cache-Control
+        - Connection
+        - DNT
+        - Content-Type
+      headers:
+        - name: x-hasura-admin-secret
+          value: rdj^3AcTsiw(hx$owKDrH:2BgImKXGa%
+      arguments:
+        - name: workflow_id
+          type: uuid!
+      type: mutation
+      kind: synchronous
+    comment: triggerWorkflowRun
+
+custom_types:
+  objects:
+    - name: TriggerWorkflowRunOutput
+      fields:
+        - name: workflow_run_id
+          type: uuid!
+        - name: status
+          type: String!
+    - name: TriggerWorkflowRunResponse
+      fields:
+        - name: workflow_run_id
+          type: uuid!
+        - name: status
+          type: String!
+    - name: ApproveStepResponse
+      fields:
+        - name: success
+          type: Boolean!
+        - name: status
+          type: String!

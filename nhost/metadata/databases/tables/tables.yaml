@@ -1,0 +1,165 @@
+- table:
+    name: notifications
+    schema: public
+
+- table:
+    name: org_members
+    schema: public
+  object_relationships:
+    - name: organization
+      using:
+        manual_configuration:
+          column_mapping:
+            org_id: id
+          insertion_order: null
+          remote_table:
+            name: organizations
+            schema: public
+    - name: user
+      using:
+        manual_configuration:
+          column_mapping:
+            user_id: id
+          insertion_order: null
+          remote_table:
+            name: users
+            schema: auth
+
+- table:
+    name: org_usage_stats
+    schema: public
+
+- table:
+    name: organizations
+    schema: public
+  array_relationships:
+    - name: org_members
+      using:
+        manual_configuration:
+          column_mapping:
+            id: org_id
+          insertion_order: null
+          remote_table:
+            name: org_members
+            schema: public
+
+- table:
+    name: step_runs
+    schema: public
+  object_relationships:
+    - name: workflow_run
+      using:
+        manual_configuration:
+          column_mapping:
+            workflow_run_id: id
+          insertion_order: null
+          remote_table:
+            name: workflow_runs
+            schema: public
+    - name: workflow_step
+      using:
+        manual_configuration:
+          column_mapping:
+            workflow_step_id: id
+          insertion_order: null
+          remote_table:
+            name: workflow_steps
+            schema: public
+
+- table:
+    name: workflow_runs
+    schema: public
+  object_relationships:
+    - name: workflow
+      using:
+        manual_configuration:
+          column_mapping:
+            workflow_id: id
+          insertion_order: null
+          remote_table:
+            name: workflows
+            schema: public
+  array_relationships:
+    - name: step_runs
+      using:
+        manual_configuration:
+          column_mapping:
+            id: workflow_run_id
+          insertion_order: null
+          remote_table:
+            name: step_runs
+            schema: public
+
+- table:
+    name: workflow_steps
+    schema: public
+  object_relationships:
+    - name: workflow
+      using:
+        manual_configuration:
+          column_mapping:
+            workflow_id: id
+          insertion_order: null
+          remote_table:
+            name: workflows
+            schema: public
+
+- table:
+    name: workflow_triggers
+    schema: public
+  object_relationships:
+    - name: workflow
+      using:
+        manual_configuration:
+          column_mapping:
+            workflow_id: id
+          insertion_order: null
+          remote_table:
+            name: workflows
+            schema: public
+
+- table:
+    name: workflows
+    schema: public
+  object_relationships:
+    - name: organization
+      using:
+        manual_configuration:
+          column_mapping:
+            org_id: id
+          insertion_order: null
+          remote_table:
+            name: organizations
+            schema: public
+  array_relationships:
+    - name: runs
+      using:
+        manual_configuration:
+          column_mapping:
+            id: workflow_id
+          insertion_order: null
+          remote_table:
+            name: workflow_runs
+            schema: public
+    - name: steps
+      using:
+        manual_configuration:
+          column_mapping:
+            id: workflow_id
+          insertion_order: null
+          remote_table:
+            name: workflow_steps
+            schema: public
+    - name: triggers
+      using:
+        manual_configuration:
+          column_mapping:
+            id: workflow_id
+          insertion_order: null
+          remote_table:
+            name: workflow_triggers
+            schema: public
+
+- table:
+    name: users
+    schema: auth

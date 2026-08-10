@@ -1,7 +1,0 @@
-table:
-  name: notifications
-  schema: public
-object_relationships:
-  - name: workflow_run
-    using:
-      foreign_key_constraint_on: workflow_run_id
