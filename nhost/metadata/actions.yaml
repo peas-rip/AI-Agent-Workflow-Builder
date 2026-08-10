@@ -20,7 +20,7 @@ actions:
         - Content-Type
       headers:
         - name: x-hasura-admin-secret
-          value: rdj^3AcTsiw(hx$owKDrH:2BgImKXGa%
+          value: ${HASURA_ADMIN_SECRET}
       arguments:
         - name: step_run_id
           type: uuid!
@@ -28,6 +28,11 @@ actions:
           type: Boolean!
       type: mutation
       kind: synchronous
+    permissions:
+      - role: user
+        permission:
+          session_variables:
+            - x-hasura-user-id
 
   - name: triggerWorkflowRun
     definition:
@@ -50,22 +55,20 @@ actions:
         - Content-Type
       headers:
         - name: x-hasura-admin-secret
-          value: rdj^3AcTsiw(hx$owKDrH:2BgImKXGa%
+          value: ${HASURA_ADMIN_SECRET}
       arguments:
         - name: workflow_id
           type: uuid!
       type: mutation
       kind: synchronous
-    comment: triggerWorkflowRun
+    permissions:
+      - role: user
+        permission:
+          session_variables:
+            - x-hasura-user-id
 
 custom_types:
   objects:
-    - name: TriggerWorkflowRunOutput
-      fields:
-        - name: workflow_run_id
-          type: uuid!
-        - name: status
-          type: String!
     - name: TriggerWorkflowRunResponse
       fields:
         - name: workflow_run_id

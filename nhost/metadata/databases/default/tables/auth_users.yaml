@@ -1,3 +1,35 @@
 table:
   name: users
   schema: auth
+object_relationships:
+  - name: org_member
+    using:
+      manual_configuration:
+        column_mapping:
+          id: user_id
+        insertion_order: null
+        remote_table:
+          name: org_members
+          schema: public
+array_relationships:
+  - name: memberships
+    using:
+      manual_configuration:
+        column_mapping:
+          id: user_id
+        insertion_order: null
+        remote_table:
+          name: org_members
+          schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - email
+        - display_name
+        - avatar_url
+        - created_at
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
