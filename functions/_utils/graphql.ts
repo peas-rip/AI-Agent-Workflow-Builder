@@ -148,14 +148,15 @@ export const QUERIES = {
     mutation UpdateWorkflowRun(
       $id: uuid!,
       $status: String!,
-      $error_message: String
+      $error_message: String,
+      $completed_at: timestamptz
     ) {
       update_workflow_runs_by_pk(
         pk_columns: { id: $id },
         _set: {
           status: $status,
           error_message: $error_message,
-          completed_at: ($status == "completed" OR $status == "failed") ? now() : null
+          completed_at: $completed_at
         }
       ) {
         id

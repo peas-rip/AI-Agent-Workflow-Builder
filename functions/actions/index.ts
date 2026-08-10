@@ -102,7 +102,8 @@ async function triggerWorkflowRun(
       { 
         id: run.id, 
         status: 'failed',
-        error_message: error.message 
+        error_message: error.message,
+        completed_at: new Date().toISOString()
       },
       true
     );
@@ -149,7 +150,7 @@ async function executeSteps(runId: string, workflowId: string, orgId: string) {
   // All steps completed - mark workflow as completed
   await gqlRequest(
     QUERIES.UPDATE_WORKFLOW_RUN,
-    { id: runId, status: 'completed' },
+    { id: runId, status: 'completed', completed_at: new Date().toISOString() },
     true
   );
   
@@ -274,7 +275,7 @@ async function executeStepByType(
   previousOutput: any,
   stepOutputs: Map<string, any>
 ): Promise<any> {
-  const config = JSON.parse(step.config);
+  const config = typeof step.config === 'string' ? JSON.parse(step.config) : step.config || {};
   
   switch (step.step_type) {
     case 'llm_call':
@@ -655,7 +656,7 @@ async function approveStep(
       // All steps completed
       await gqlRequest(
         QUERIES.UPDATE_WORKFLOW_RUN,
-        { id: workflowRun.id, status: 'completed' },
+        { id: workflowRun.id, status: 'completed', completed_at: new Date().toISOString() },
         true
       );
       
@@ -673,7 +674,8 @@ async function approveStep(
         { 
           id: workflowRun.id, 
           status: 'failed',
-          error_message: error.message 
+          error_message: error.message,
+          completed_at: new Date().toISOString()
         },
         true
       );
@@ -686,7 +688,8 @@ async function approveStep(
       { 
         id: workflowRun.id, 
         status: 'failed',
-        error_message: 'Approval denied' 
+        error_message: 'Approval denied',
+        completed_at: new Date().toISOString()
       },
       true
     );

@@ -2,14 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuthenticationStatus } from '@nhost/nhost-js/react';
+import { useAuth } from '@/lib/useAuth';
 import { useQuery } from '@apollo/client';
 import { GET_WORKFLOW_DETAIL } from '@/lib/graphql';
 import WorkflowBuilder from '@/components/WorkflowBuilder';
 import WorkflowRunList from '@/components/WorkflowRunList';
 
 export default function WorkflowDetailPage() {
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const workflowId = params.id as string;

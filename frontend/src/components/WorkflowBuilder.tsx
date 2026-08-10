@@ -2,11 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { useMutation, useApolloClient } from '@apollo/client';
-import { 
-  CREATE_WORKFLOW_STEP, 
-  UPDATE_WORKFLOW_STEP, 
+import {
+  CREATE_WORKFLOW_STEP,
+  UPDATE_WORKFLOW_STEP,
   DELETE_WORKFLOW_STEP,
-  TRIGGER_WORKFLOW 
+  TRIGGER_WORKFLOW
 } from '@/lib/graphql';
 import StepCard from './StepCard';
 import StepEditor from './StepEditor';
@@ -20,12 +20,12 @@ interface WorkflowBuilderProps {
       id: string;
       step_order: number;
       step_type: string;
-      config: string;
+      config: any;
     }>;
     triggers: Array<{
       id: string;
       trigger_type: string;
-      config: string;
+      config: any;
       is_active: boolean;
       webhook_secret?: string;
     }>;
@@ -39,7 +39,7 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
   const [showTriggerEditor, setShowTriggerEditor] = useState(false);
   const [newStepType, setNewStepType] = useState<string>('llm_call');
   const [isReordering, setIsReordering] = useState(false);
-  
+
   const apolloClient = useApolloClient();
 
   const [createStep] = useMutation(CREATE_WORKFLOW_STEP);
@@ -64,14 +64,14 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
           workflow_id: workflow.id,
           step_order: nextOrder,
           step_type: newStepType,
-          config: JSON.stringify(config),
+          config: config,
         },
       });
-      
+
       if (data?.insert_workflow_steps_one) {
         setLocalSteps(prev => [...prev, data.insert_workflow_steps_one]);
       }
-      
+
       setShowStepEditor(false);
     } catch (error) {
       console.error('Failed to add step:', error);
@@ -84,14 +84,14 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
       await updateStep({
         variables: {
           id: stepId,
-          config: JSON.stringify(config),
+          config: config,
         },
       });
-      
-      setLocalSteps(prev => prev.map(s => 
-        s.id === stepId ? { ...s, config: JSON.stringify(config) } : s
+
+      setLocalSteps(prev => prev.map(s =>
+        s.id === stepId ? { ...s, config: config } : s
       ));
-      
+
       setEditingStep(null);
     } catch (error) {
       console.error('Failed to update step:', error);
@@ -108,13 +108,13 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
       await deleteStep({
         variables: { id: stepId },
       });
-      
+
       const remainingSteps = localSteps.filter(s => s.id !== stepId);
       const reorderedSteps = remainingSteps.map((s, i) => ({
         ...s,
         step_order: i + 1
       }));
-      
+
       for (const step of reorderedSteps) {
         const original = localSteps.find(s => s.id === step.id);
         if (original && step.step_order !== original.step_order) {
@@ -126,7 +126,7 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
           });
         }
       }
-      
+
       setLocalSteps(reorderedSteps);
     } catch (error) {
       console.error('Failed to delete step:', error);
@@ -136,9 +136,9 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
 
   const handleReorder = async (dragIndex: number, hoverIndex: number) => {
     if (isReordering) return;
-    
+
     setIsReordering(true);
-    
+
     const draggedStep = steps[dragIndex];
     const newSteps = [...steps];
     newSteps.splice(dragIndex, 1);
@@ -148,7 +148,7 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
       ...s,
       step_order: i + 1
     }));
-    
+
     setLocalSteps(reorderedSteps);
 
     try {
@@ -164,7 +164,7 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
         }
         return Promise.resolve();
       });
-      
+
       await Promise.all(updatePromises);
     } catch (error) {
       console.error('Failed to reorder steps:', error);
@@ -310,7 +310,7 @@ export default function WorkflowBuilder({ workflow }: WorkflowBuilderProps) {
       {editingStep && (
         <StepEditor
           stepType={steps.find(s => s.id === editingStep)?.step_type || 'llm_call'}
-          initialConfig={JSON.parse(steps.find(s => s.id === editingStep)?.config || '{}')}
+          initialConfig={steps.find(s => s.id === editingStep)?.config || {}}
           onSave={(config) => handleUpdateStep(editingStep, config)}
           onCancel={() => setEditingStep(null)}
         />

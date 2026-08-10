@@ -66,30 +66,11 @@ export default function WorkflowRunList({ runs }: WorkflowRunListProps) {
     }
   };
 
-  const getStepTypeIcon = (type: string) => {
-    switch (type) {
-      case 'llm_call':
-        return '🤖';
-      case 'http_request':
-        return '🌐';
-      case 'db_write':
-        return '💾';
-      case 'notify':
-        return '🔔';
-      case 'conditional_branch':
-        return '🔀';
-      case 'approval_gate':
-        return '✅';
-      default:
-        return '⚡';
-    }
-  };
-
   const formatDuration = (start: string, end?: string) => {
     const startTime = new Date(start).getTime();
     const endTime = end ? new Date(end).getTime() : Date.now();
     const duration = Math.round((endTime - startTime) / 1000);
-    
+
     if (duration < 60) {
       return `${duration}s`;
     }
@@ -106,7 +87,7 @@ export default function WorkflowRunList({ runs }: WorkflowRunListProps) {
         <div
           key={run.id}
           className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => router.push(`/workflows/${run.id}`)}
+          onClick={() => router.push(`/runs/${run.id}`)}
         >
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center space-x-3">

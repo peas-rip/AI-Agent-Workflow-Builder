@@ -5,7 +5,7 @@ interface StepCardProps {
     id: string;
     step_order: number;
     step_type: string;
-    config: string;
+    config: any;
   };
   index: number;
   totalSteps: number;
@@ -28,7 +28,7 @@ export default function StepCard({
   onMoveUp,
   onMoveDown,
 }: StepCardProps) {
-  const config = JSON.parse(step.config);
+  const config = typeof step.config === 'string' ? JSON.parse(step.config) : step.config || {};
 
   const getStepIcon = (type: string) => {
     switch (type) {
@@ -90,10 +90,10 @@ export default function StepCard({
   return (
     <div
       className={`border rounded-lg p-4 transition-all ${
-        isEditing 
-          ? 'border-indigo-500 bg-indigo-50' 
-          : isReordering 
-            ? 'border-blue-300 bg-blue-50 opacity-75' 
+        isEditing
+          ? 'border-indigo-500 bg-indigo-50'
+          : isReordering
+            ? 'border-blue-300 bg-blue-50 opacity-75'
             : 'border-gray-200 hover:border-gray-300'
       }`}
     >

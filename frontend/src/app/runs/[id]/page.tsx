@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuthenticationStatus } from '@nhost/nhost-js/react';
+import { useAuth } from '@/lib/useAuth';
 import { useQuery, useSubscription } from '@apollo/client';
 import { GET_WORKFLOW_RUN, SUBSCRIBE_WORKFLOW_RUN } from '@/lib/graphql';
 import WorkflowRunDetail from '@/components/WorkflowRunDetail';
 
 export default function WorkflowRunPage() {
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const runId = params.id as string;

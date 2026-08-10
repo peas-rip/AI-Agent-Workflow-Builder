@@ -25,7 +25,7 @@ interface WorkflowRunDetailProps {
       workflow_step: {
         step_order: number;
         step_type: string;
-        config: string;
+        config: any;
       };
     }>;
   };
@@ -87,7 +87,7 @@ export default function WorkflowRunDetail({ run }: WorkflowRunDetailProps) {
     const startTime = new Date(start).getTime();
     const endTime = end ? new Date(end).getTime() : Date.now();
     const duration = Math.round((endTime - startTime) / 1000);
-    
+
     if (duration < 60) {
       return `${duration}s`;
     }
@@ -161,8 +161,10 @@ export default function WorkflowRunDetail({ run }: WorkflowRunDetailProps) {
 
         <div className="space-y-4">
           {run.step_runs.map((stepRun, index) => {
-            const config = JSON.parse(stepRun.workflow_step.config);
-            
+            const config = typeof stepRun.workflow_step.config === 'string'
+              ? JSON.parse(stepRun.workflow_step.config)
+              : stepRun.workflow_step.config || {};
+
             return (
               <div
                 key={stepRun.id}

@@ -7,28 +7,30 @@ import { CREATE_WORKFLOW } from '@/lib/graphql';
 
 interface CreateWorkflowModalProps {
   orgId: string;
+  userId: string;
   onClose: () => void;
 }
 
-export default function CreateWorkflowModal({ orgId, onClose }: CreateWorkflowModalProps) {
+export default function CreateWorkflowModal({ orgId, userId, onClose }: CreateWorkflowModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const router = useRouter();
-  
+
   const [createWorkflow, { loading, error }] = useMutation(CREATE_WORKFLOW);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const { data } = await createWorkflow({
         variables: {
           org_id: orgId,
           name,
           description: description || undefined,
+          created_by: userId,
         },
       });
-      
+
       if (data?.insert_workflows_one?.id) {
         router.push(`/workflows/${data.insert_workflows_one.id}`);
         onClose();
@@ -45,13 +47,13 @@ export default function CreateWorkflowModal({ orgId, onClose }: CreateWorkflowMo
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Create New Workflow
           </h2>
-          
+
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {error.message}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -66,7 +68,7 @@ export default function CreateWorkflowModal({ orgId, onClose }: CreateWorkflowMo
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
@@ -79,7 +81,7 @@ export default function CreateWorkflowModal({ orgId, onClose }: CreateWorkflowMo
                 placeholder="Optional description of what this workflow does"
               />
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"

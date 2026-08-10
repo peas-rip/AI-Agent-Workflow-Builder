@@ -1,35 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
-import { useAuthenticationStatus, useSignOut } from '@nhost/nhost-js/react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { GET_ORGANIZATIONS } from '@/lib/graphql';
-import WorkflowList from '@/components/WorkflowList';
+import { GET_ORGANIZATIONS, GET_WORKFLOWS } from '@/lib/graphql';
+import WorkflowCard from '@/components/WorkflowCard';
 import CreateWorkflowModal from '@/components/CreateWorkflowModal';
 
 export default function WorkflowsPage() {
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
-  const { signOut } = useSignOut();
+  const { isAuthenticated, isLoading, userId } = useAuth();
   const router = useRouter();
-  const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/');
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  const { data: orgData, loading: orgsLoading } = useQuery(GET_ORGANIZATIONS, {
-    variables: { user_id: 'current-user-id' }, // Will be replaced with actual user ID
-    skip: !isAuthenticated,
+  const { data: orgsData, loading: orgsLoading } = useQuery(GET_ORGANIZATIONS, {
+    variables: { user_id: userId },
+    skip: !isAuthenticated || !userId,
   });
+
+  const { data: workflowsData, loading: workflowsLoading } = useQuery(GET_WORKFLOWS, {
+    variables: { org_id: selectedOrgId },
+    skip: !selectedOrgId,
+  });
+
+  useEffect(() => {
+    if (orgsData?.org_members?.length > 0 && !selectedOrgId) {
+      setSelectedOrgId(orgsData.org_members[0].organization.id);
+    }
+  }, [orgsData, selectedOrgId]);
 
   if (isLoading || orgsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="text-gray-500">Loading...</div>
       </div>
     );
   }
@@ -38,102 +42,71 @@ export default function WorkflowsPage() {
     return null;
   }
 
-  const organizations = orgData?.org_members || [];
-  const currentOrg = organizations.find((m: any) => m.org_id === selectedOrg)?.organization;
+  const orgMembers = orgsData?.org_members || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Workflow Builder
-            </h1>
-            
-            <div className="flex items-center space-x-4">
-              {/* Organization Selector */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Workflows</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage your AI agent workflows
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            {orgMembers.length > 1 && (
               <select
-                value={selectedOrg || ''}
-                onChange={(e) => setSelectedOrg(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                value={selectedOrgId || ''}
+                onChange={(e) => setSelectedOrgId(e.target.value)}
+                className="block w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value="">Select Organization</option>
-                {organizations.map((m: any) => (
-                  <option key={m.org_id} value={m.org_id}>
-                    {m.organization.name} ({m.role})
+                {orgMembers.map((member: any) => (
+                  <option key={member.organization.id} value={member.organization.id}>
+                    {member.organization.name}
                   </option>
                 ))}
               </select>
-              
-              <button
-                onClick={() => signOut()}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Sign Out
-              </button>
-            </div>
+            )}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Create Workflow
+            </button>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {selectedOrg ? (
-          <>
-            {/* Usage Quota */}
-            {currentOrg && (
-              <div className="mb-6 bg-white rounded-lg shadow p-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">
-                    Usage Quota
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {currentOrg.usage_calls_used} / {currentOrg.usage_calls_allowed} calls used
-                  </span>
-                </div>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-indigo-600 h-2 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        (currentOrg.usage_calls_used / currentOrg.usage_calls_allowed) * 100,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )}
-
-            {/* Workflow List */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Workflows
-              </h2>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-              >
-                Create Workflow
-              </button>
-            </div>
-
-            <WorkflowList orgId={selectedOrg} />
-          </>
-        ) : (
+        {workflowsLoading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">
-              Please select an organization to view workflows
-            </p>
+            <div className="text-gray-500">Loading workflows...</div>
+          </div>
+        ) : workflowsData?.workflows?.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500">No workflows yet</div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200"
+            >
+              Create your first workflow
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {workflowsData?.workflows?.map((workflow: any) => (
+              <WorkflowCard
+                key={workflow.id}
+                workflow={workflow}
+              />
+            ))}
           </div>
         )}
-      </main>
+      </div>
 
-      {/* Create Workflow Modal */}
-      {showCreateModal && selectedOrg && (
+      {showCreateModal && selectedOrgId && (
         <CreateWorkflowModal
-          orgId={selectedOrg}
+          orgId={selectedOrgId}
+          userId={userId!}
           onClose={() => setShowCreateModal(false)}
         />
       )}

@@ -152,8 +152,8 @@ export const SUBSCRIBE_WORKFLOW_RUN = gql`
 // Mutations
 export const TRIGGER_WORKFLOW = gql`
   mutation TriggerWorkflow($workflow_id: uuid!) {
-    triggerWorkflowRun(workflow_id: $workflow_id) {
-      workflow_run_id
+    triggerWorkflowRun(args: { workflow_id: $workflow_id }) {
+      runId
       status
     }
   }
@@ -161,7 +161,7 @@ export const TRIGGER_WORKFLOW = gql`
 
 export const APPROVE_STEP = gql`
   mutation ApproveStep($step_run_id: uuid!, $approved: Boolean!) {
-    approveStep(step_run_id: $step_run_id, approved: $approved) {
+    approveStep(args: { step_run_id: $step_run_id, approved: $approved }) {
       success
       status
     }
@@ -169,11 +169,12 @@ export const APPROVE_STEP = gql`
 `;
 
 export const CREATE_WORKFLOW = gql`
-  mutation CreateWorkflow($org_id: uuid!, $name: String!, $description: String) {
+  mutation CreateWorkflow($org_id: uuid!, $name: String!, $description: String, $created_by: uuid!) {
     insert_workflows_one(object: {
       org_id: $org_id,
       name: $name,
-      description: $description
+      description: $description,
+      created_by: $created_by
     }) {
       id
       name

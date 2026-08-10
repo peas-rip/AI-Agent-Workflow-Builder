@@ -1,42 +1,51 @@
-import { ApolloClient, InMemoryCache, HttpLink, split } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
-import { getMainDefinition } from '@apollo/client/utilities';
-import { HASURA_ENDPOINT } from './nhost';
+import { nhost } from './nhost';
 
-const httpLink = new HttpLink({
-  uri: HASURA_ENDPOINT,
-  headers: {
-    'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET || '',
-  },
+const NHOST_ENDPOINT = process.env.NEXT_PUBLIC_NHOST_ENDPOINT || 'https://rjxzoqtvtqbgjqcagviq.hasura.ap-south-1.nhost.run';
+const NHOST_SUB_ENDPOINT = process.env.NEXT_PUBLIC_NHOST_SUB_ENDPOINT || 'wss://rjxzoqtvtqbgjqcagviq.hasura.ap-south-1.nhost.run/v1/graphql';
+
+const authLink = new ApolloLink((operation, forward) => {
+  const session = nhost.auth.getSession();
+  const token = session?.session?.accessToken;
+
+  operation.setContext({
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  return forward(operation);
 });
 
-const wsLink = typeof window !== 'undefined'
-  ? new GraphQLWsLink(
-      createClient({
-        url: HASURA_ENDPOINT.replace('http', 'ws'),
-        connectionParams: () => ({
-          headers: {
-            'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET || '',
-          },
-        }),
-      })
-    )
-  : null;
+const httpLink = new HttpLink({
+  uri: `${NHOST_ENDPOINT}/v1/graphql`,
+});
 
-const splitLink = typeof window !== 'undefined' && wsLink
-  ? split(
-      ({ query }) => {
-        const definition = getMainDefinition(query);
-        return (
-          definition.kind === 'OperationDefinition' &&
-          definition.operation === 'subscription'
-        );
-      },
-      wsLink,
-      httpLink
-    )
-  : httpLink;
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: NHOST_SUB_ENDPOINT,
+    connectionParams: () => {
+      const session = nhost.auth.getSession();
+      const token = session?.session?.accessToken;
+      return {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      };
+    },
+  })
+);
+
+const splitLink = ApolloLink.split(
+  ({ query }) => {
+    const definition = query.definitions[0] as any;
+    return definition?.kind === 'OperationDefinition' && definition.operation === 'subscription';
+  },
+  wsLink,
+  ApolloLink.from([authLink, httpLink])
+);
 
 export const apolloClient = new ApolloClient({
   link: splitLink,

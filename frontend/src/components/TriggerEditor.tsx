@@ -25,7 +25,7 @@ export default function TriggerEditor({ workflowId, onSave, onCancel }: TriggerE
         return {};
       case 'scheduled':
         return {
-          cron: '0 9 * * *', // Daily at 9am
+          cron: '0 9 * * *',
         };
       case 'database_event':
         return {
@@ -44,7 +44,7 @@ export default function TriggerEditor({ workflowId, onSave, onCancel }: TriggerE
         variables: {
           workflow_id: workflowId,
           trigger_type: triggerType,
-          config: JSON.stringify(config),
+          config: config,
           webhook_secret: triggerType === 'webhook' ? webhookSecret || null : null,
         },
       });
